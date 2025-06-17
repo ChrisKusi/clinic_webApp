@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:clinic_web_dashboard/screens/auth/login_screen.dart';
 import 'package:clinic_web_dashboard/screens/admin/admin_dashboard.dart';
-import 'package:clinic_web_dashboard/screens/nurse/nurse_dashboard.dart';
+import 'package:clinic_web_dashboard/screens/doctor/doctor_dashboard.dart';
+import 'package:clinic_web_dashboard/services/presence_service.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -16,7 +17,7 @@ class AuthGate extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF808000), // Olive green
+              color: Color(0xFF808000),
             ),
           );
         }
@@ -34,6 +35,7 @@ class AuthGate extends StatelessWidget {
               );
             }
             if (roleSnapshot.hasError) {
+              print('Error loading role: ${roleSnapshot.error}');
               return const Center(
                 child: Text(
                   'Error loading user role. Please try again.',
@@ -41,11 +43,16 @@ class AuthGate extends StatelessWidget {
                 ),
               );
             }
-            final role = roleSnapshot.data ?? 'nurse';
-            if (role == 'admin') {
-              return const AdminDashboard();
-            } else {
-              return const NurseDashboard();
+            final presenceService = PresenceService();
+            presenceService.setupPresence();
+            final role = roleSnapshot.data ?? 'admin'; // Default to admin if no role found
+            switch (role) {
+              case 'admin':
+                return const AdminDashboard();
+              case 'doctor':
+                return const DoctorDashboard();
+              default:
+                return const LoginScreen(); // No nurse fallback
             }
           },
         );
@@ -55,10 +62,21 @@ class AuthGate extends StatelessWidget {
 
   Future<String> _getUserRole(String uid) async {
     try {
+      // Check users collection first
       DocumentSnapshot userDoc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      return (userDoc.data() as Map<String, dynamic>?)?['role'] ?? 'nurse';
+      if (userDoc.exists) {
+        return (userDoc.data() as Map<String, dynamic>?)?['role'] ?? 'admin';
+      }
+      // Check doctors collection if not found in users
+      DocumentSnapshot doctorDoc =
+          await FirebaseFirestore.instance.collection('doctors').doc(uid).get();
+      if (doctorDoc.exists) {
+        return (doctorDoc.data() as Map<String, dynamic>?)?['role'] ?? 'doctor';
+      }
+      return 'admin'; // Default role if no match
     } catch (e) {
+      print('Failed to fetch user role: $e');
       throw Exception('Failed to fetch user role: $e');
     }
   }
