@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'doctor_profile_screen.dart';
 import 'doctor_appointment_screen.dart';
 import 'doctor_PatientRecords_screen.dart';
-import 'chat_list_screen.dart';
+import 'doctor_chat/chat_list_screen.dart';
 
 class DoctorDashboard extends StatefulWidget {
   const DoctorDashboard({super.key});

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -491,7 +490,7 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
         const SizedBox(height: 12),
         _buildFullWidthRecordCard(
           label: 'Medical Conditions',
-          value: data['medicalConditions']?.toString() ?? 'None reported',
+          value: data['conditions']?.toString() ?? 'None reported',
           icon: Icons.medical_information_rounded,
           color: Colors.purple,
         ),
