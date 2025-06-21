@@ -67,7 +67,6 @@ class ClinicWebDashboard extends StatelessWidget {
         '/admin-profile': (context) => const AdminProfileScreen(),
         '/doctor-profile': (context) => const DoctorProfileScreen(),
         '/doctor-appointments': (context) => const DoctorAppointmentScreen(),
-        '/doctor-patient-records': (context) => const DoctorPatientRecordsScreen(),
         '/user-list': (context) => const UserListScreen(),
         '/forgotPassword': (context) => const ForgotPasswordScreen(),
       },

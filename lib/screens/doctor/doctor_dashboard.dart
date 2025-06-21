@@ -168,15 +168,16 @@ class _DoctorDashboardState extends State<DoctorDashboard> with TickerProviderSt
   }
 
   Widget _getCurrentScreen() {
+    final doctorId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     switch (_selectedIndex) {
       case 0:
         return const DoctorOverviewScreen();
       case 1:
         return const DoctorAppointmentScreen();
       case 2:
-        return const DoctorPatientRecordsScreen();
+        return DoctorPatientRecordsScreen(doctorId: doctorId);
       case 3:
-        final doctorId = FirebaseAuth.instance.currentUser?.uid ?? '';
         return DoctorChatListScreen(doctorId: doctorId);
       case 4:
         return PlaceholderScreen(title: 'Notifications', icon: Icons.notifications);
@@ -186,6 +187,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> with TickerProviderSt
         return const DoctorOverviewScreen();
     }
   }
+
 
   void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
