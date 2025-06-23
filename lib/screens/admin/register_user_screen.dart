@@ -72,13 +72,17 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
       });
 
       try {
-        // Create user account
+
+// Save current admin credentials before registration (you must prompt for this securely)
+        final currentAdminEmail = 'admin@deseret.com'; // Replace with actual admin email
+        final currentAdminPassword = 'Admin1234'; // Replace with actual password
+
+// Register user
         final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-
-        // Set up user data in Firestore
+// Set up user data in Firestore
         if (_role == 'doctor') {
           await FirebaseFirestore.instance
               .collection('doctors')
@@ -125,8 +129,13 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
             duration: const Duration(seconds: 3),
           ),
         );
+// Sign back in as admin
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: currentAdminEmail,
+          password: currentAdminPassword,
+        );
 
-        // Reset form
+                // Reset form
         _resetForm();
 
       } on FirebaseAuthException catch (e) {

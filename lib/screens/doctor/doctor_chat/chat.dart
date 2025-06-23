@@ -10,6 +10,8 @@ class Chat {
   final String lastMessage;
   final DateTime lastMessageTime;
   final String encryptionKey;
+  final int unreadCountDoctor;  // Separate unread count for doctor
+  final int unreadCountUser;    // Separate unread count for user
 
   Chat({
     required this.id,
@@ -21,6 +23,8 @@ class Chat {
     required this.lastMessage,
     required this.lastMessageTime,
     required this.encryptionKey,
+    this.unreadCountDoctor = 0,
+    this.unreadCountUser = 0,
   });
 
   factory Chat.fromFirestore(DocumentSnapshot doc) {
@@ -33,8 +37,10 @@ class Chat {
       userName: data['userName'] ?? 'Unknown User',
       doctorSpecialization: data['doctorSpecialization'] ?? '',
       lastMessage: data['lastMessage'] ?? '',
-      lastMessageTime: (data['lastMessageTime'] as Timestamp).toDate(),
+      lastMessageTime: (data['lastMessageTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
       encryptionKey: data['encryptionKey'] ?? '',
+      unreadCountDoctor: data['unreadCountDoctor'] ?? 0,
+      unreadCountUser: data['unreadCountUser'] ?? 0,
     );
   }
 
@@ -48,6 +54,17 @@ class Chat {
       'lastMessage': lastMessage,
       'lastMessageTime': Timestamp.fromDate(lastMessageTime),
       'encryptionKey': encryptionKey,
+      'unreadCountDoctor': unreadCountDoctor,
+      'unreadCountUser': unreadCountUser,
     };
+  }
+
+  // Helper method to get unread count for current user
+  int getUnreadCount(String currentUserId, String userType) {
+    if (userType == 'doctor') {
+      return unreadCountDoctor;
+    } else {
+      return unreadCountUser;
+    }
   }
 }
