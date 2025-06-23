@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'admin_dashboard.dart';
 
 class PatientRecordsScreen extends StatefulWidget {
   const PatientRecordsScreen({super.key});
@@ -24,9 +25,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
-  bool _isEditing = false;
   bool _isLoading = false;
-  bool _isSaving = false;
   String? _errorMessage;
   Timer? _debounce;
 
@@ -151,7 +150,6 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
     setState(() {
       _selectedPatientId = id;
       _selectedPatientName = selectedPatient['name'];
-      _isEditing = false;
       _controllers = {
         'allergies': TextEditingController(),
         'medicalConditions': TextEditingController(),
@@ -162,7 +160,11 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
     });
     _slideController.reset();
     _slideController.forward();
+    _loadPatientData(id);
+
   }
+
+
 
   void _clearSearch() {
     _searchController.clear();
@@ -596,49 +598,11 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
             ],
           ),
         ),
-        if (!_isEditing)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => setState(() => _isEditing = true),
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value * 0.95 + 0.05,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [primaryColor.withOpacity(0.1), accentColor.withOpacity(0.1)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: primaryColor.withOpacity(0.3)),
-                        ),
-                        child: Icon(Icons.edit_rounded, color: primaryColor, size: 24),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
 
   Widget _buildMedicalRecordsForm(Map<String, dynamic> data) {
-    if (!_isEditing) {
-      _controllers['allergies']!.text = data['allergies']?.toString() ?? '';
-      _controllers['medicalConditions']!.text = data['conditions']?.toString() ?? '';
-      _controllers['height']!.text = data['height']?.toString() ?? '';
-      _controllers['weight']!.text = data['weight']?.toString() ?? '';
-      _controllers['bloodGroup']!.text = data['bloodGroup']?.toString() ?? '';
-    }
-
     return Form(
       child: Column(
         children: [
@@ -699,7 +663,6 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
             maxLines: 4,
           ),
           const SizedBox(height: 36),
-          if (_isEditing) _buildAnimatedActionButtons(),
         ],
       ),
     );
@@ -756,7 +719,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
                 child: Text(
                   label,
                   style: GoogleFonts.inter(
-                    color: _isEditing ? primaryColor : textSecondary,
+                    color: textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
@@ -769,7 +732,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
           TextFormField(
             controller: controller,
             maxLines: maxLines,
-            readOnly: !_isEditing,
+            readOnly: true,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.inter(
@@ -781,7 +744,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
               fillColor: Colors.transparent,
             ),
             style: GoogleFonts.inter(
-              color: _isEditing ? textPrimary : textSecondary,
+              color: textSecondary,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -841,7 +804,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  color: _isEditing ? primaryColor : textSecondary,
+                  color: textSecondary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
@@ -853,7 +816,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
           TextFormField(
             controller: controller,
             maxLines: maxLines,
-            readOnly: !_isEditing,
+            readOnly: true,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.inter(
@@ -865,7 +828,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
               fillColor: Colors.transparent,
             ),
             style: GoogleFonts.inter(
-              color: _isEditing ? textPrimary : textSecondary,
+              color: textSecondary,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -873,168 +836,6 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
         ],
       ),
     );
-  }
-
-  Widget _buildAnimatedActionButtons() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: successColor.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: _isSaving ? null : _savePatientRecords,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: _isSaving
-                            ? [Colors.grey[400]!, Colors.grey[500]!]
-                            : [successColor, successColor.withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_isSaving)
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        else
-                          Icon(Icons.save_rounded, color: Colors.white, size: 22),
-                        const SizedBox(width: 12),
-                        Text(
-                          _isSaving ? 'Saving...' : 'Save Changes',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: textSecondary.withOpacity(0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: _isSaving ? null : _cancelEditing,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: textSecondary.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.close_rounded, color: textSecondary, size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Cancel',
-                        style: GoogleFonts.inter(
-                          color: textSecondary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _savePatientRecords() async {
-    if (_selectedPatientId == null || _isSaving) return;
-
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    try {
-      Map<String, dynamic> updatedData = {
-        'allergies': _controllers['allergies']!.text.trim(),
-        'medicalConditions': _controllers['medicalConditions']!.text.trim(),
-        'height': _controllers['height']!.text.trim(),
-        'weight': _controllers['weight']!.text.trim(),
-        'bloodGroup': _controllers['bloodGroup']!.text.trim(),
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_selectedPatientId)
-          .update(updatedData);
-
-      setState(() {
-        _isEditing = false;
-        _isSaving = false;
-      });
-
-      _showSuccessSnackBar('Patient records updated successfully!');
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to save records: $e';
-        _isSaving = false;
-      });
-      _showErrorSnackBar('Failed to save records. Please try again.');
-    }
-  }
-
-  void _cancelEditing() {
-    setState(() {
-      _isEditing = false;
-    });
-    // Reset controllers to original values by triggering rebuild
-    if (_selectedPatientId != null) {
-      _loadPatientData(_selectedPatientId!);
-    }
   }
 
   void _loadPatientData(String patientId) async {
@@ -1057,41 +858,6 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
     } catch (e) {
       _showErrorSnackBar('Failed to load patient data');
     }
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: successColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(Icons.check_circle_rounded, color: successColor, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: successColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   void _showErrorSnackBar(String message) {
@@ -1247,7 +1013,11 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
             ),
             child: Icon(Icons.arrow_back_ios_rounded, color: primaryColor, size: 20),
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const AdminDashboard()),
+            );
+          },
         ),
         actions: [
           if (_selectedPatientId != null)
