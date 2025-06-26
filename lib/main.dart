@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'dart:html' as html;
 import 'package:clinic_web_dashboard/screens/auth/auth_gate.dart';
 import 'package:clinic_web_dashboard/screens/auth/login_screen.dart';
 import 'package:clinic_web_dashboard/screens/auth/forgot_password_screen.dart';
@@ -11,27 +12,33 @@ import 'package:clinic_web_dashboard/screens/admin/patient_records_screen.dart';
 import 'package:clinic_web_dashboard/screens/admin/admin_profile_screen.dart';
 import 'package:clinic_web_dashboard/screens/doctor/doctor_profile_screen.dart';
 import 'package:clinic_web_dashboard/screens/doctor/doctor_appointment_screen.dart';
-import 'package:clinic_web_dashboard/screens/doctor/doctor_PatientRecords_screen.dart';
 import 'package:clinic_web_dashboard/screens/user_list_screen.dart';
-import 'dart:ui' show ChannelBuffers;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ChannelBuffers().setListener('flutter/lifecycle', (message, reply) {
-    print('Lifecycle message received: $message');
-  });
+
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyDWj0DM8fBB00c5FvuTLCvDDiIQbRhnDOU",
       authDomain: "pentecost-clinic.firebaseapp.com",
       databaseURL: "https://pentecost-clinic-default-rtdb.firebaseio.com",
       projectId: "pentecost-clinic",
-      storageBucket: "pentecost-clinic.firebasestorage.app",
+      storageBucket: "pentecost-clinic.appspot.com",
       messagingSenderId: "272709137362",
       appId: "1:272709137362:web:93b6bc3f76e5191827ce0b",
     ),
   );
-  print('Firebase initialized: ${Firebase.app().name}');
+  print('✅ Firebase initialized: ${Firebase.app().name}');
+
+  // Register FCM service worker
+  if (html.window.navigator.serviceWorker != null) {
+    html.window.navigator.serviceWorker!
+        .register('firebase-messaging-sw.js')
+        .then((reg) => print('✅ Service Worker registered: ${reg.scope}'))
+        .catchError((e) => print('❌ SW registration failed: $e'));
+  }
+
   runApp(const ClinicWebDashboard());
 }
 

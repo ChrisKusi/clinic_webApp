@@ -1100,6 +1100,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
                   Navigator.pop(context);
                   HapticFeedback.lightImpact();
                   _showSnackBar('Report added successfully');
+                  await _sendReportNotification(appointmentId, titleController.text.trim());
                 } catch (e) {
                   _showSnackBar('Error adding report: $e', isError: true);
                 } finally {
@@ -1415,15 +1416,118 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
 
   void _updateAppointmentStatus(String appointmentId, String newStatus) async {
     try {
+      // Get appointment data first to access userId
+      final appointmentDoc = await _firestore.collection('appointments').doc(appointmentId).get();
+      if (!appointmentDoc.exists) {
+        _showSnackBar('Appointment not found', isError: true);
+        return;
+      }
+
+      final appointmentData = appointmentDoc.data()!;
+      final userId = appointmentData['userId'];
+      final patientName = await _getPatientName(userId);
+
+      // Update appointment status
       await _firestore.collection('appointments').doc(appointmentId).update({
         'status': newStatus,
         'updatedAt': Timestamp.now(),
       });
 
+      // Send notification to patient
+      String notificationTitle = 'Appointment Update';
+      String notificationBody = '';
+
+      switch (newStatus) {
+        case 'confirmed':
+          notificationBody = 'Your appointment with Dr. ${_doctorInfo?['name'] ?? 'Doctor'} has been confirmed.';
+          break;
+        case 'canceled':
+          notificationBody = 'Your appointment with Dr. ${_doctorInfo?['name'] ?? 'Doctor'} has been canceled.';
+          break;
+        case 'completed':
+          notificationBody = 'Your appointment with Dr. ${_doctorInfo?['name'] ?? 'Doctor'} has been completed.';
+          break;
+      }
+
+      if (notificationBody.isNotEmpty) {
+        await _sendNotification(userId, notificationTitle, notificationBody);
+      }
+
       HapticFeedback.lightImpact();
       _showSnackBar('Appointment ${newStatus.toLowerCase()} successfully.');
     } catch (e) {
       _showSnackBar('Error updating appointment: $e', isError: true);
+    }
+  }
+  Future<void> _sendNotification(String userId, String title, String body) async {
+    try {
+      // Get user's FCM token
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        print('User document not found for ID: $userId');
+        return;
+      }
+
+      final userData = userDoc.data()!;
+      final fcmToken = userData['fcmToken'];
+
+      if (fcmToken == null || fcmToken.isEmpty) {
+        print('No FCM token found for user: $userId');
+        return;
+      }
+
+      // Store notification in Firestore for the Cloud Function to process
+      await _firestore.collection('notifications').add({
+        'to': fcmToken,
+        'title': title,
+        'body': body,
+        'data': {
+          'type': 'appointment_update',
+          'userId': userId,
+          'doctorId': _doctorId,
+          'timestamp': DateTime.now().millisecondsSinceEpoch.toString(), // Add timestamp
+        },
+        'timestamp': FieldValue.serverTimestamp(),
+        'processed': false,
+        'retryCount': 0, // Add retry tracking
+      });
+
+      // Also store in user's notification subcollection for in-app notifications
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .add({
+        'title': title,
+        'body': body,
+        'type': 'appointment_update',
+        'doctorId': _doctorId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+
+      print('Notification queued successfully for user: $userId');
+    } catch (e) {
+      print('Error sending notification: $e');
+    }
+  }
+
+  // ADD THIS NEW METHOD (for report notifications - optional)
+  Future<void> _sendReportNotification(String appointmentId, String reportTitle) async {
+    try {
+      final appointmentDoc = await _firestore.collection('appointments').doc(appointmentId).get();
+      if (!appointmentDoc.exists) return;
+
+      final appointmentData = appointmentDoc.data()!;
+      final userId = appointmentData['userId'];
+
+      await _sendNotification(
+        userId,
+        'New Medical Report',
+        'Dr. ${_doctorInfo?['name'] ?? 'Your doctor'} has added a new report: $reportTitle',
+      );
+    } catch (e) {
+      print('Error sending report notification: $e');
     }
   }
 }
