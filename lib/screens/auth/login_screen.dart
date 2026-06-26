@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       await _saveRememberMe();
       final presenceService = PresenceService();
       presenceService.setupPresence();
-      print('Login successful for user: ${credential.user?.uid}');
+      debugPrint('Login successful for user: ${credential.user?.uid}');
       _showModal(context, 'Success', 'Login successful!', isSuccess: true);
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -94,10 +95,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         default:
           errorMessage = 'An error occurred: ${e.message}';
       }
-      print('Login error: $errorMessage');
+      debugPrint('Login error: $errorMessage');
       _showModal(context, 'Error', errorMessage, isSuccess: false);
     } catch (e) {
-      print('Unexpected login error: $e');
+      debugPrint('Unexpected login error: $e');
       _showModal(context, 'Error', 'An unexpected error occurred.', isSuccess: false);
     }
   }
@@ -129,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             children: [
               Icon(
                 isSuccess ? Icons.check_circle : Icons.error_outline,
-                color: isSuccess ? const Color(0xFF808000) : Colors.redAccent,
+                color: isSuccess ? AppColors.primary : Colors.redAccent,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -138,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 style: GoogleFonts.roboto(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF808000),
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -154,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF808000),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -192,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 end: Alignment.bottomRight,
                 colors: [
                   Colors.white,
-                  const Color(0xFF808000).withOpacity(0.1),
+                  AppColors.primary.withOpacity(0.1),
                 ],
               ),
               image: const DecorationImage(
@@ -236,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         errorBuilder: (context, error, stackTrace) => const Icon(
                           Icons.local_hospital,
                           size: 80,
-                          color: Color(0xFF808000),
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -245,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         style: GoogleFonts.roboto(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF808000),
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -262,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             borderRadius: const BorderRadius.all(Radius.circular(8)),
                           ),
                           focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF808000), width: 2),
+                            borderSide: BorderSide(color: AppColors.primary, width: 2),
                             borderRadius: BorderRadius.all(Radius.circular(8)),
                           ),
                         ),
@@ -282,13 +283,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             borderRadius: const BorderRadius.all(Radius.circular(8)),
                           ),
                           focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF808000), width: 2),
+                            borderSide: BorderSide(color: AppColors.primary, width: 2),
                             borderRadius: BorderRadius.all(Radius.circular(8)),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                              color: const Color(0xFF808000),
+                              color: AppColors.primary,
                             ),
                             onPressed: () {
                               setState(() => _obscurePassword = !_obscurePassword);
@@ -303,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             value: _rememberMe,
                             onChanged: (value) => setState(() => _rememberMe = value!),
                             shape: const CircleBorder(),
-                            activeColor: const Color(0xFF808000),
+                            activeColor: AppColors.primary,
                           ),
                           Text(
                             'Remember Me',
@@ -317,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         child: ElevatedButton(
                           onPressed: _login,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF808000),
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -336,7 +337,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           'Forgot Password?',
                           style: GoogleFonts.roboto(
                             fontSize: 14,
-                            color: const Color(0xFF808000),
+                            color: AppColors.primary,
                             decoration: TextDecoration.underline,
                           ),
                         ),

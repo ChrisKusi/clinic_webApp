@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 // Importing necessary Flutter and third-party packages
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -60,13 +61,13 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
   // Initialize presence tracking for users
   void _initializePresence() async {
     setState(() => _isLoadingPresence = true);
-    final userSnapshot = await FirebaseFirestore.instance.collection('users').get();
-    final doctorSnapshot = await FirebaseFirestore.instance.collection('doctors').get();
+    final userSnapshot = await FirebaseFirestore.instance.collection(Collections.users).get();
+    final doctorSnapshot = await FirebaseFirestore.instance.collection(Collections.doctors).get();
     final users = [...userSnapshot.docs, ...doctorSnapshot.docs];
     _onlineUsers = {for (var user in users) user.id: false};
 
     // Listen to presence changes
-    final presenceStream = FirebaseFirestore.instance.collection('presence').snapshots();
+    final presenceStream = FirebaseFirestore.instance.collection(Collections.presence).snapshots();
     presenceStream.listen((snapshot) {
       snapshot.docs.forEach((doc) {
         final userId = doc.id;
@@ -111,7 +112,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         elevation: 2,
-        backgroundColor: const Color(0xFF808000),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Text('User Management', style: GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.w700)),
         actions: [
@@ -138,8 +139,8 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                     // Stats display
                     StreamBuilder<List<QuerySnapshot>>(
                       stream: Rx.combineLatest2(
-                        FirebaseFirestore.instance.collection('users').snapshots(),
-                        FirebaseFirestore.instance.collection('doctors').snapshots(),
+                        FirebaseFirestore.instance.collection(Collections.users).snapshots(),
+                        FirebaseFirestore.instance.collection(Collections.doctors).snapshots(),
                         (QuerySnapshot users, QuerySnapshot doctors) => [users, doctors],
                       ),
                       builder: (context, snapshot) {
@@ -154,7 +155,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                             return Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF808000),
+                                color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -258,14 +259,14 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
               Expanded(
                 child: StreamBuilder<List<QuerySnapshot>>(
                   stream: Rx.combineLatest2(
-                    FirebaseFirestore.instance.collection('users').snapshots(),
-                    FirebaseFirestore.instance.collection('doctors').snapshots(),
+                    FirebaseFirestore.instance.collection(Collections.users).snapshots(),
+                    FirebaseFirestore.instance.collection(Collections.doctors).snapshots(),
                     (QuerySnapshot users, QuerySnapshot doctors) => [users, doctors],
                   ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) return _buildLoadingState();
                     if (snapshot.hasError) {
-                      print('Error fetching users: ${snapshot.error}');
+                      debugPrint('Error fetching users: ${snapshot.error}');
                       return _buildErrorState();
                     }
                     if (!snapshot.hasData || (snapshot.data![0].docs.isEmpty && snapshot.data![1].docs.isEmpty)) return _buildEmptyState();
@@ -323,7 +324,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                                   onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
                                   icon: const Icon(Icons.chevron_left, size: 20),
                                   style: IconButton.styleFrom(
-                                    backgroundColor: _currentPage > 0 ? const Color(0xFF808000) : Colors.grey[300],
+                                    backgroundColor: _currentPage > 0 ? AppColors.primary : Colors.grey[300],
                                     foregroundColor: _currentPage > 0 ? Colors.white : Colors.grey[600],
                                     padding: const EdgeInsets.all(8),
                                   ),
@@ -337,7 +338,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                                     child: ElevatedButton(
                                       onPressed: () => setState(() => _currentPage = pageNumber),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: isCurrentPage ? const Color(0xFF808000) : Colors.grey[200],
+                                        backgroundColor: isCurrentPage ? AppColors.primary : Colors.grey[200],
                                         foregroundColor: isCurrentPage ? Colors.white : Colors.grey[700],
                                         minimumSize: const Size(36, 36),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -352,7 +353,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                                   onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
                                   icon: const Icon(Icons.chevron_right, size: 20),
                                   style: IconButton.styleFrom(
-                                    backgroundColor: _currentPage < totalPages - 1 ? const Color(0xFF808000) : Colors.grey[300],
+                                    backgroundColor: _currentPage < totalPages - 1 ? AppColors.primary : Colors.grey[300],
                                     foregroundColor: _currentPage < totalPages - 1 ? Colors.white : Colors.grey[600],
                                     padding: const EdgeInsets.all(8),
                                   ),
@@ -396,7 +397,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF808000),
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -449,7 +450,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
 
     return StreamBuilder<Map<String, dynamic>?>(
       key: key,
-      stream: FirebaseFirestore.instance.collection('presence').doc(userId).snapshots().map((doc) => doc.data()),
+      stream: FirebaseFirestore.instance.collection(Collections.presence).doc(userId).snapshots().map((doc) => doc.data()),
       builder: (context, presenceSnapshot) {
         if (!presenceSnapshot.hasData) return const SizedBox.shrink();
         final presence = presenceSnapshot.data!;
@@ -520,8 +521,8 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
                           icon: const Icon(Icons.more_vert, color: Color(0xFF808080), size: 20),
                           onSelected: (value) {},
                           itemBuilder: (context) => [
-                            PopupMenuItem(value: 'view', child: Row(children: [Icon(Icons.visibility, size: 14, color: const Color(0xFF808000)), SizedBox(width: 6), Text('View Profile', style: GoogleFonts.roboto(fontSize: 12))])),
-                            PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 14, color: const Color(0xFF808000)), SizedBox(width: 6), Text('Edit User', style: GoogleFonts.roboto(fontSize: 12))])),
+                            PopupMenuItem(value: 'view', child: Row(children: [Icon(Icons.visibility, size: 14, color: AppColors.primary), SizedBox(width: 6), Text('View Profile', style: GoogleFonts.roboto(fontSize: 12))])),
+                            PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 14, color: AppColors.primary), SizedBox(width: 6), Text('Edit User', style: GoogleFonts.roboto(fontSize: 12))])),
                             PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 14, color: Colors.red), SizedBox(width: 6), Text('Delete User', style: GoogleFonts.roboto(fontSize: 12))])),
                           ],
                         ),
@@ -578,7 +579,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF808000))),
+            CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
             SizedBox(height: 12),
             Text('Loading users...', style: GoogleFonts.roboto(color: const Color(0xFF808080), fontSize: 14)),
           ],
@@ -599,7 +600,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
             ElevatedButton(
               onPressed: _refreshStats,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF808000),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -627,7 +628,7 @@ class _UserListScreenState extends State<UserListScreen> with TickerProviderStat
   // Generate avatar color based on name
   Color _getAvatarColor(String name) {
     final colors = [
-      Color(0xFF808000),
+      AppColors.primary,
       Color(0xFF9ACD32),
       Color(0xFF6B8E23),
       Color(0xFF8FBC8F),

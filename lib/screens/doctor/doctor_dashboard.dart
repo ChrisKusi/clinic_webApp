@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,7 +70,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> with TickerProviderSt
       try {
         final userId = FirebaseAuth.instance.currentUser!.uid;
         final snapshot = await FirebaseFirestore.instance
-            .collection('doctors')
+            .collection(Collections.doctors)
             .doc(userId)
             .get();
         final data = snapshot.data() as Map<String, dynamic>?;
@@ -100,17 +101,17 @@ class _DoctorDashboardState extends State<DoctorDashboard> with TickerProviderSt
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        await FirebaseFirestore.instance.collection('presence').doc(userId).update({
+        await FirebaseFirestore.instance.collection(Collections.presence).doc(userId).update({
           'online': false,
           'lastSeen': FieldValue.serverTimestamp(),
         });
-        print('Presence updated: offline for user $userId');
+        debugPrint('Presence updated: offline for user $userId');
       }
       await FirebaseAuth.instance.signOut();
-      print('Logout successful');
+      debugPrint('Logout successful');
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
-      print('Logout error: $e');
+      debugPrint('Logout error: $e');
       _showSnackBar(context, 'Error logging out: $e', isError: true);
     }
   }
@@ -383,7 +384,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> with TickerProviderSt
                             fit: BoxFit.cover,
                             opacity: 0.05,
                             onError: (exception, stackTrace) {
-                              print('Background image failed to load: $exception');
+                              debugPrint('Background image failed to load: $exception');
                             },
                           ),
                         ),
@@ -1344,12 +1345,12 @@ class _DoctorOverviewScreenState extends State<DoctorOverviewScreen>
 
     try {
       final userSnapshot = await FirebaseFirestore.instance
-          .collection('doctors')
+          .collection(Collections.doctors)
           .doc(userId)
           .get();
 
       final appointmentsSnapshot = await FirebaseFirestore.instance
-          .collection('appointments')
+          .collection(Collections.appointments)
           .where('doctorId', isEqualTo: userId)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
           .where('date', isLessThan: Timestamp.fromDate(endOfDay))

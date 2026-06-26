@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chat.dart';
 import 'encryption_service.dart';
@@ -8,7 +10,7 @@ class ChatService {
   // Get user details from users collection
   Future<Map<String, String>> getUserDetails(String userId) async {
     try {
-      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userDoc = await _firestore.collection(Collections.users).doc(userId).get();
       if (userDoc.exists) {
         final data = userDoc.data() as Map<String, dynamic>;
         final firstName = data['firstName'] ?? '';
@@ -21,7 +23,7 @@ class ChatService {
         };
       }
     } catch (e) {
-      print('Error getting user details: $e');
+      debugPrint('Error getting user details: $e');
     }
     return {'name': 'Unknown User', 'email': '', 'type': 'user'};
   }
@@ -29,7 +31,7 @@ class ChatService {
   // Get doctor details from doctors collection
   Future<Map<String, String>> getDoctorDetails(String doctorId) async {
     try {
-      final doctorDoc = await _firestore.collection('doctors').doc(doctorId).get();
+      final doctorDoc = await _firestore.collection(Collections.doctors).doc(doctorId).get();
       if (doctorDoc.exists) {
         final data = doctorDoc.data() as Map<String, dynamic>;
         return {
@@ -40,7 +42,7 @@ class ChatService {
         };
       }
     } catch (e) {
-      print('Error getting doctor details: $e');
+      debugPrint('Error getting doctor details: $e');
     }
     return {'name': 'Unknown Doctor', 'email': '', 'specialization': '', 'type': 'doctor'};
   }
@@ -54,7 +56,7 @@ class ChatService {
   }) async {
     try {
       final query = await _firestore
-          .collection('chats')
+          .collection(Collections.chats)
           .where('participants', arrayContains: currentUserId)
           .get();
 
@@ -71,7 +73,7 @@ class ChatService {
       final doctorDetails = await getDoctorDetails(doctorId);
       final userDetails = await getUserDetails(userId);
 
-      final newChat = await _firestore.collection('chats').add({
+      final newChat = await _firestore.collection(Collections.chats).add({
         'userId': userId,
         'doctorId': doctorId,
         'doctorName': doctorDetails['name'],
@@ -91,7 +93,7 @@ class ChatService {
 
       return newChat.id;
     } catch (e) {
-      print('Error creating chat: $e');
+      debugPrint('Error creating chat: $e');
       rethrow;
     }
   }
@@ -104,7 +106,7 @@ class ChatService {
       String content,
       ) async {
     try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      final chatDoc = await _firestore.collection(Collections.chats).doc(chatId).get();
 
       if (!chatDoc.exists) {
         throw Exception('Chat not found');
@@ -136,9 +138,9 @@ class ChatService {
         'unreadCount.$otherParticipantId': FieldValue.increment(1),
       };
 
-      await _firestore.collection('chats').doc(chatId).update(updateData);
+      await _firestore.collection(Collections.chats).doc(chatId).update(updateData);
     } catch (e) {
-      print('Error sending message: $e');
+      debugPrint('Error sending message: $e');
       rethrow;
     }
   }
@@ -146,7 +148,7 @@ class ChatService {
   // Mark messages as read
   Future<void> markMessagesAsRead(String chatId, String userId) async {
     try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      final chatDoc = await _firestore.collection(Collections.chats).doc(chatId).get();
 
       if (!chatDoc.exists) {
         return;
@@ -167,13 +169,13 @@ class ChatService {
 
       // Only update if there are unread messages
       if (hasUnreadMessages) {
-        await _firestore.collection('chats').doc(chatId).update({
+        await _firestore.collection(Collections.chats).doc(chatId).update({
           'messages': updatedMessages,
           'unreadCount.$userId': 0, // Reset unread count for this user
         });
       }
     } catch (e) {
-      print('Error marking messages as read: $e');
+      debugPrint('Error marking messages as read: $e');
     }
   }
 
@@ -181,7 +183,7 @@ class ChatService {
   Future<int> getUnreadMessageCount(String userId) async {
     try {
       final query = await _firestore
-          .collection('chats')
+          .collection(Collections.chats)
           .where('participants', arrayContains: userId)
           .get();
 
@@ -196,7 +198,7 @@ class ChatService {
 
       return totalUnreadCount;
     } catch (e) {
-      print('Error getting unread count: $e');
+      debugPrint('Error getting unread count: $e');
       return 0;
     }
   }
@@ -204,7 +206,7 @@ class ChatService {
   // Clear chat messages
   Future<void> clearChat(String chatId) async {
     try {
-      await _firestore.collection('chats').doc(chatId).update({
+      await _firestore.collection(Collections.chats).doc(chatId).update({
         'messages': [],
         'lastMessage': '',
         'lastMessageTime': FieldValue.serverTimestamp(),
@@ -213,7 +215,7 @@ class ChatService {
         'lastEncryptedMessage': '',
       });
     } catch (e) {
-      print('Error clearing chat: $e');
+      debugPrint('Error clearing chat: $e');
       rethrow;
     }
   }
@@ -221,9 +223,9 @@ class ChatService {
   // Delete chat
   Future<void> deleteChat(String chatId) async {
     try {
-      await _firestore.collection('chats').doc(chatId).delete();
+      await _firestore.collection(Collections.chats).doc(chatId).delete();
     } catch (e) {
-      print('Error deleting chat: $e');
+      debugPrint('Error deleting chat: $e');
       rethrow;
     }
   }
@@ -231,12 +233,12 @@ class ChatService {
   // Get chat details
   Future<Chat?> getChatDetails(String chatId) async {
     try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      final chatDoc = await _firestore.collection(Collections.chats).doc(chatId).get();
       if (chatDoc.exists) {
         return Chat.fromFirestore(chatDoc);
       }
     } catch (e) {
-      print('Error getting chat details: $e');
+      debugPrint('Error getting chat details: $e');
     }
     return null;
   }
@@ -244,18 +246,18 @@ class ChatService {
   // Update typing status
   Future<void> updateTypingStatus(String chatId, String userId, bool isTyping) async {
     try {
-      await _firestore.collection('chats').doc(chatId).update({
+      await _firestore.collection(Collections.chats).doc(chatId).update({
         'typing.$userId': isTyping ? FieldValue.serverTimestamp() : FieldValue.delete(),
       });
     } catch (e) {
-      print('Error updating typing status: $e');
+      debugPrint('Error updating typing status: $e');
     }
   }
 
   // Get typing status stream
   Stream<Map<String, bool>> getTypingStatus(String chatId, String currentUserId) {
     return _firestore
-        .collection('chats')
+        .collection(Collections.chats)
         .doc(chatId)
         .snapshots()
         .map((doc) {
@@ -283,7 +285,7 @@ class ChatService {
   // Get chats for user with unread count
   Stream<List<Chat>> getChatsForUser(String userId) {
     return _firestore
-        .collection('chats')
+        .collection(Collections.chats)
         .where('userId', isEqualTo: userId)
         .orderBy('lastMessageTime', descending: true)
         .snapshots()
@@ -293,7 +295,7 @@ class ChatService {
   // Get chats for doctor with unread count
   Stream<List<Chat>> getChatsForDoctor(String doctorId) {
     return _firestore
-        .collection('chats')
+        .collection(Collections.chats)
         .where('doctorId', isEqualTo: doctorId)
         .orderBy('lastMessageTime', descending: true)
         .snapshots()
@@ -303,7 +305,7 @@ class ChatService {
   // Export chat messages
   Future<List<Map<String, dynamic>>> exportChatMessages(String chatId) async {
     try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      final chatDoc = await _firestore.collection(Collections.chats).doc(chatId).get();
 
       if (!chatDoc.exists) {
         return [];
@@ -328,7 +330,7 @@ class ChatService {
         };
       }).toList();
     } catch (e) {
-      print('Error exporting chat: $e');
+      debugPrint('Error exporting chat: $e');
       return [];
     }
   }
@@ -348,7 +350,7 @@ class ChatService {
   Future<List<Map<String, dynamic>>> searchMessagesInChat(
       String chatId, String searchQuery) async {
     try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      final chatDoc = await _firestore.collection(Collections.chats).doc(chatId).get();
 
       if (!chatDoc.exists) {
         return [];
@@ -376,7 +378,7 @@ class ChatService {
 
       return searchResults;
     } catch (e) {
-      print('Error searching messages: $e');
+      debugPrint('Error searching messages: $e');
       return [];
     }
   }

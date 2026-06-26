@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -63,7 +64,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
 
   Future<void> _loadDoctorInfo() async {
     try {
-      final doc = await _firestore.collection('doctors').doc(_doctorId).get();
+      final doc = await _firestore.collection(Collections.doctors).doc(_doctorId).get();
       if (doc.exists) {
         setState(() => _doctorInfo = doc.data());
       } else {
@@ -80,7 +81,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
     }
 
     try {
-      final doc = await _firestore.collection('users').doc(userId).get();
+      final doc = await _firestore.collection(Collections.users).doc(userId).get();
       if (doc.exists) {
         final data = doc.data()!;
         final firstName = data['firstName']?.toString() ?? '';
@@ -833,9 +834,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
   Widget _buildReportsList(String appointmentId) {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore
-          .collection('appointments')
+          .collection(Collections.appointments)
           .doc(appointmentId)
-          .collection('reports')
+          .collection(Collections.reports)
           .orderBy('createdAt', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -1084,9 +1085,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
                   }
 
                   await _firestore
-                      .collection('appointments')
+                      .collection(Collections.appointments)
                       .doc(appointmentId)
-                      .collection('reports')
+                      .collection(Collections.reports)
                       .add({
                     'title': titleController.text.trim(),
                     'content': contentController.text.trim(),
@@ -1267,9 +1268,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
                   }
 
                   await _firestore
-                      .collection('appointments')
+                      .collection(Collections.appointments)
                       .doc(appointmentId)
-                      .collection('reports')
+                      .collection(Collections.reports)
                       .doc(reportId)
                       .update({
                     'title': titleController.text.trim(),
@@ -1321,9 +1322,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
             onPressed: () async {
               try {
                 await _firestore
-                    .collection('appointments')
+                    .collection(Collections.appointments)
                     .doc(appointmentId)
-                    .collection('reports')
+                    .collection(Collections.reports)
                     .doc(reportId)
                     .delete();
 
@@ -1365,7 +1366,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     return _firestore
-        .collection('appointments')
+        .collection(Collections.appointments)
         .where('doctorId', isEqualTo: _doctorId)
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
         .where('date', isLessThan: Timestamp.fromDate(endOfDay))
@@ -1379,7 +1380,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
     final startOfTomorrow = DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
 
     Query query = _firestore
-        .collection('appointments')
+        .collection(Collections.appointments)
         .where('doctorId', isEqualTo: _doctorId)
         .where('status', whereIn: ['pending', 'confirmed'])
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfTomorrow))
@@ -1398,7 +1399,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
 
   Stream<QuerySnapshot> _getHistoryAppointmentsStream() {
     Query query = _firestore
-        .collection('appointments')
+        .collection(Collections.appointments)
         .where('doctorId', isEqualTo: _doctorId)
         .where('status', whereIn: ['completed', 'canceled'])
         .orderBy('date', descending: true);
@@ -1417,7 +1418,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
   void _updateAppointmentStatus(String appointmentId, String newStatus) async {
     try {
       // Get appointment data first to access userId
-      final appointmentDoc = await _firestore.collection('appointments').doc(appointmentId).get();
+      final appointmentDoc = await _firestore.collection(Collections.appointments).doc(appointmentId).get();
       if (!appointmentDoc.exists) {
         _showSnackBar('Appointment not found', isError: true);
         return;
@@ -1428,7 +1429,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
       final patientName = await _getPatientName(userId);
 
       // Update appointment status
-      await _firestore.collection('appointments').doc(appointmentId).update({
+      await _firestore.collection(Collections.appointments).doc(appointmentId).update({
         'status': newStatus,
         'updatedAt': Timestamp.now(),
       });
@@ -1462,9 +1463,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
   Future<void> _sendNotification(String userId, String title, String body) async {
     try {
       // Get user's FCM token
-      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userDoc = await _firestore.collection(Collections.users).doc(userId).get();
       if (!userDoc.exists) {
-        print('User document not found for ID: $userId');
+        debugPrint('User document not found for ID: $userId');
         return;
       }
 
@@ -1472,12 +1473,12 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
       final fcmToken = userData['fcmToken'];
 
       if (fcmToken == null || fcmToken.isEmpty) {
-        print('No FCM token found for user: $userId');
+        debugPrint('No FCM token found for user: $userId');
         return;
       }
 
       // Store notification in Firestore for the Cloud Function to process
-      await _firestore.collection('notifications').add({
+      await _firestore.collection(Collections.notifications).add({
         'to': fcmToken,
         'title': title,
         'body': body,
@@ -1494,9 +1495,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
 
       // Also store in user's notification subcollection for in-app notifications
       await _firestore
-          .collection('users')
+          .collection(Collections.users)
           .doc(userId)
-          .collection('notifications')
+          .collection(Collections.notifications)
           .add({
         'title': title,
         'body': body,
@@ -1506,16 +1507,16 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
         'read': false,
       });
 
-      print('Notification queued successfully for user: $userId');
+      debugPrint('Notification queued successfully for user: $userId');
     } catch (e) {
-      print('Error sending notification: $e');
+      debugPrint('Error sending notification: $e');
     }
   }
 
   // ADD THIS NEW METHOD (for report notifications - optional)
   Future<void> _sendReportNotification(String appointmentId, String reportTitle) async {
     try {
-      final appointmentDoc = await _firestore.collection('appointments').doc(appointmentId).get();
+      final appointmentDoc = await _firestore.collection(Collections.appointments).doc(appointmentId).get();
       if (!appointmentDoc.exists) return;
 
       final appointmentData = appointmentDoc.data()!;
@@ -1527,7 +1528,7 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen>
         'Dr. ${_doctorInfo?['name'] ?? 'Your doctor'} has added a new report: $reportTitle',
       );
     } catch (e) {
-      print('Error sending report notification: $e');
+      debugPrint('Error sending report notification: $e');
     }
   }
 }

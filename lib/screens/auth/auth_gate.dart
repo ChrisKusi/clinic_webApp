@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,17 +31,17 @@ class _AuthGateState extends State<AuthGate> {
     try {
       final user = await FirebaseAuth.instance.authStateChanges().firstWhere((user) => user != null, orElse: () => null);
       if (user == null) {
-        print('⚠️ No authenticated user for FCM setup');
+        debugPrint('⚠️ No authenticated user for FCM setup');
         return;
       }
       final role = await _getUserRole(user.uid);
       if (role != 'doctor') {
-        print('⚠️ User is not a doctor, skipping FCM setup');
+        debugPrint('⚠️ User is not a doctor, skipping FCM setup');
         return;
       }
       NotificationSettings settings = await _messaging.requestPermission();
       if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-        print('⚠️ Notification permission denied');
+        debugPrint('⚠️ Notification permission denied');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enable notifications to receive appointment alerts.')),
         );
@@ -49,37 +50,37 @@ class _AuthGateState extends State<AuthGate> {
       String? token = await _messaging.getToken(
         vapidKey: 'BJfDqZ9BvTdODBMJu1UA3TWHshyBlKWCfbiW21nV7i2Q25HbHsNxSJUCV28yNftWe90ZWqO5DBwYHPb6UGqzKFI',
       );
-      print('📲 FCM Token: $token');
+      debugPrint('📲 FCM Token: $token');
       if (token != null) {
         await FirebaseFirestore.instance
-            .collection('doctors')
+            .collection(Collections.doctors)
             .doc(user.uid)
-            .collection('tokens')
+            .collection(Collections.tokens)
             .doc(token) // Use token as document ID to avoid duplicates
             .set({
           'fcmToken': token,
           'createdAt': FieldValue.serverTimestamp(),
           'device': html.window.navigator.userAgent, // Fixed: html is now imported
         });
-        print('✅ FCM token saved for doctor UID: ${user.uid}');
+        debugPrint('✅ FCM token saved for doctor UID: ${user.uid}');
       }
       _messaging.onTokenRefresh.listen((newToken) async {
         await FirebaseFirestore.instance
-            .collection('doctors')
+            .collection(Collections.doctors)
             .doc(user.uid)
-            .collection('tokens')
+            .collection(Collections.tokens)
             .doc(newToken)
             .set({
           'fcmToken': newToken,
           'createdAt': FieldValue.serverTimestamp(),
           'device': html.window.navigator.userAgent, // Fixed: html is now imported
         });
-        print('✅ FCM token refreshed: $newToken');
+        debugPrint('✅ FCM token refreshed: $newToken');
       });
 
       // Handle foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('📩 Foreground Message: ${message.notification?.title} - ${message.notification?.body}');
+        debugPrint('📩 Foreground Message: ${message.notification?.title} - ${message.notification?.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -92,7 +93,7 @@ class _AuthGateState extends State<AuthGate> {
 
       // Handle background notification taps
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        print('🔁 Opened from background: ${message.data}');
+        debugPrint('🔁 Opened from background: ${message.data}');
         if (message.data['route'] != null) {
           Navigator.of(context).pushNamed(message.data['route']);
         }
@@ -101,13 +102,13 @@ class _AuthGateState extends State<AuthGate> {
       // Handle cold start from notification
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
-        print('🚀 Opened from cold start: ${initialMessage.data}');
+        debugPrint('🚀 Opened from cold start: ${initialMessage.data}');
         if (initialMessage.data['route'] != null) {
           Navigator.of(context).pushNamed(initialMessage.data['route']);
         }
       }
     } catch (e) {
-      print('❌ FCM setup error: $e');
+      debugPrint('❌ FCM setup error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error setting up notifications: $e')),
       );
@@ -117,18 +118,18 @@ class _AuthGateState extends State<AuthGate> {
   Future<String> _getUserRole(String uid) async {
     try {
       DocumentSnapshot userDoc =
-      await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      await FirebaseFirestore.instance.collection(Collections.users).doc(uid).get();
       if (userDoc.exists) {
         return (userDoc.data() as Map<String, dynamic>?)?['role'] ?? 'unknown';
       }
       DocumentSnapshot doctorDoc =
-      await FirebaseFirestore.instance.collection('doctors').doc(uid).get();
+      await FirebaseFirestore.instance.collection(Collections.doctors).doc(uid).get();
       if (doctorDoc.exists) {
         return (doctorDoc.data() as Map<String, dynamic>?)?['role'] ?? 'unknown';
       }
       return 'unknown';
     } catch (e) {
-      print('Failed to fetch user role: $e');
+      debugPrint('Failed to fetch user role: $e');
       return 'unknown';
     }
   }
@@ -140,7 +141,7 @@ class _AuthGateState extends State<AuthGate> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF808000)),
+            child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
         if (!snapshot.hasData) {
@@ -151,11 +152,11 @@ class _AuthGateState extends State<AuthGate> {
           builder: (context, roleSnapshot) {
             if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF808000)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               );
             }
             if (roleSnapshot.hasError || !roleSnapshot.hasData) {
-              print('Error or no role data: ${roleSnapshot.error}');
+              debugPrint('Error or no role data: ${roleSnapshot.error}');
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

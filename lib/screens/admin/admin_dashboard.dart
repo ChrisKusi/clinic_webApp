@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,7 +70,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
       try {
         final userId = FirebaseAuth.instance.currentUser!.uid;
         final snapshot = await FirebaseFirestore.instance
-            .collection('users')
+            .collection(Collections.users)
             .doc(userId)
             .get();
         final data = snapshot.data() as Map<String, dynamic>?;
@@ -100,17 +101,17 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        await FirebaseFirestore.instance.collection('presence').doc(userId).update({
+        await FirebaseFirestore.instance.collection(Collections.presence).doc(userId).update({
           'online': false,
           'lastSeen': FieldValue.serverTimestamp(),
         });
-        print('Presence updated: offline for user $userId');
+        debugPrint('Presence updated: offline for user $userId');
       }
       await FirebaseAuth.instance.signOut();
-      print('Logout successful');
+      debugPrint('Logout successful');
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
-      print('Logout error: $e');
+      debugPrint('Logout error: $e');
       _showSnackBar(context, 'Error logging out: $e', isError: true);
     }
   }
@@ -244,13 +245,13 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                 width: _isSidebarExpanded ? maxSidebarWidth : minSidebarWidth,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [const Color(0xFF808000), const Color(0xFF4DB6AC)],
+                    colors: [AppColors.primary, const Color(0xFF4DB6AC)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF808000).withOpacity(0.3),
+                      color: AppColors.primary.withOpacity(0.3),
                       blurRadius: 4,
                       offset: const Offset(2, 0),
                     ),
@@ -366,7 +367,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                             fit: BoxFit.cover,
                             opacity: 0.05,
                             onError: (exception, stackTrace) {
-                              print('Pattern image failed to load: $exception');
+                              debugPrint('Pattern image failed to load: $exception');
                             },
                           ),
                         ),
@@ -973,8 +974,8 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> with TickerPr
   Future<Map<String, dynamic>> _fetchDashboardData() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    final userSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    final presenceSnapshot = await FirebaseFirestore.instance.collection('presence').doc(userId).get();
+    final userSnapshot = await FirebaseFirestore.instance.collection(Collections.users).doc(userId).get();
+    final presenceSnapshot = await FirebaseFirestore.instance.collection(Collections.presence).doc(userId).get();
     final userData = userSnapshot.data() ?? {};
     final presenceData = presenceSnapshot.data() ?? {};
 
@@ -983,12 +984,12 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> with TickerPr
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     final appointments = await FirebaseFirestore.instance
-        .collection('appointments')
+        .collection(Collections.appointments)
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
         .where('date', isLessThan: Timestamp.fromDate(endOfDay))
         .get();
 
-    final doctors = await FirebaseFirestore.instance.collection('doctors').get();
+    final doctors = await FirebaseFirestore.instance.collection(Collections.doctors).get();
 
     return {
       'lastLogin': presenceData['lastSeen'],

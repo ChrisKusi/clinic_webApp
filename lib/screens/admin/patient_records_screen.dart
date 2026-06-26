@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -97,7 +98,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
     });
 
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('users').get();
+      final snapshot = await FirebaseFirestore.instance.collection(Collections.users).get();
       List<Map<String, String>> patients = snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return {'id': doc.id, 'name': _constructDisplayName(data)};
@@ -841,7 +842,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
   void _loadPatientData(String patientId) async {
     try {
       final doc = await FirebaseFirestore.instance
-          .collection('users')
+          .collection(Collections.users)
           .doc(patientId)
           .get();
 
@@ -1044,7 +1045,7 @@ class _PatientRecordsScreenAdminState extends State<PatientRecordsScreen>
             if (_selectedPatientId != null)
               StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
-                    .collection('users')
+                    .collection(Collections.users)
                     .doc(_selectedPatientId)
                     .snapshots(),
                 builder: (context, snapshot) {

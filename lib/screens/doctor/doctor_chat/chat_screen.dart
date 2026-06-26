@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,7 +79,7 @@ class _DoctorChatScreenState extends State<DoctorChatScreen>
     try {
       await _chatService.markMessagesAsRead(widget.chatId, widget.doctorId);
     } catch (e) {
-      print('Error marking messages as read: $e');
+      debugPrint('Error marking messages as read: $e');
     }
   }
 
@@ -293,7 +294,7 @@ class _DoctorChatScreenState extends State<DoctorChatScreen>
 
   Widget _buildMessageList() {
     return StreamBuilder<DocumentSnapshot>(
-      stream: _firestore.collection('chats').doc(widget.chatId).snapshots(),
+      stream: _firestore.collection(Collections.chats).doc(widget.chatId).snapshots(),
       builder: (context, snapshot) {
         // Only show loading if we've never had data before
         if (!snapshot.hasData && snapshot.connectionState == ConnectionState.waiting) {
@@ -596,9 +597,9 @@ class MessageBubble extends StatelessWidget {
         message['encryptedContent'] ?? '',
         encryptionKey,
       );
-      print('Decrypted content: $content'); // Debug
+      debugPrint('Decrypted content: $content'); // Debug
     } catch (e) {
-      print('Decryption error: $e, Message: ${message['encryptedContent']}'); // Debug
+      debugPrint('Decryption error: $e, Message: ${message['encryptedContent']}'); // Debug
       content = 'Error decrypting message: $e';
     }
 

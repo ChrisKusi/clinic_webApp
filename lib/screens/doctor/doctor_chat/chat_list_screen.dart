@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'chat_service.dart';
@@ -474,11 +475,11 @@ class _DoctorChatListScreenState extends State<DoctorChatListScreen>
   Future<void> _markMessagesAsRead(String chatId) async {
     try {
       await FirebaseFirestore.instance
-          .collection('chats')
+          .collection(Collections.chats)
           .doc(chatId)
           .update({'unreadCountDoctor': 0});
     } catch (e) {
-      print('Error marking messages as read: $e');
+      debugPrint('Error marking messages as read: $e');
     }
   }
 

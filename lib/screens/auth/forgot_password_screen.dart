@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +24,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         _successMessage = 'Password reset email sent! Check your inbox.';
         _errorMessage = null;
       });
-      print('Password reset email sent to ${_emailController.text.trim()}');
+      debugPrint('Password reset email sent to ${_emailController.text.trim()}');
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -40,13 +41,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         _errorMessage = errorMessage;
         _successMessage = null;
       });
-      print('Password reset error: $errorMessage');
+      debugPrint('Password reset error: $errorMessage');
     } catch (e) {
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
         _successMessage = null;
       });
-      print('Unexpected password reset error: $e');
+      debugPrint('Unexpected password reset error: $e');
     }
   }
 
@@ -61,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Forgot Password'),
-        backgroundColor: const Color(0xFF808000),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Center(
@@ -89,7 +90,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.roboto(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF808000),
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -112,7 +113,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                     ),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF808000), width: 2),
+                      borderSide: BorderSide(color: AppColors.primary, width: 2),
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
                   ),
@@ -132,7 +133,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ElevatedButton(
                   onPressed: _resetPassword,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF808000),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

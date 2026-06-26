@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,7 +30,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen>
   String? _originalEmail;
 
   // Professional color scheme
-  final Color primaryColor = const Color(0xFF808000); // Olive green
+  final Color primaryColor = AppColors.primary; // Olive green
   final Color accentColor = const Color(0xFF4CAF50);
   final Color backgroundColor = const Color(0xFFF8F9FA);
   final Color cardColor = Colors.white;
@@ -86,7 +87,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen>
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('users')
+            .collection(Collections.users)
             .doc(user.uid)
             .get();
         if (doc.exists) {
@@ -111,7 +112,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen>
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           await FirebaseFirestore.instance
-              .collection('users')
+              .collection(Collections.users)
               .doc(user.uid)
               .update({
             'name': _nameController.text.trim(),
@@ -156,7 +157,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen>
         try {
           await user.reauthenticateWithCredential(credential);
         } on FirebaseAuthException catch (e) {
-          print('Reauthentication error: ${e.code} - ${e.message}'); // Debug log
+          debugPrint('Reauthentication error: ${e.code} - ${e.message}'); // Debug log
           if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'user-mismatch') {
             _showSnackBar('Current password is incorrect.', isError: true);
             setState(() => _isSaving = false);
@@ -199,7 +200,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen>
         _showSnackBar('No user is signed in. Please sign in again.', isError: true);
       }
     } catch (e) {
-      print('Unexpected error: $e'); // Debug log
+      debugPrint('Unexpected error: $e'); // Debug log
       _showSnackBar('An unexpected error occurred. Please check your connection and try again.', isError: true);
     } finally {
       setState(() => _isSaving = false);

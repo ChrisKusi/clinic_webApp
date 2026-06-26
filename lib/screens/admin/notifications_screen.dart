@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,12 +11,12 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final Color primaryColor = const Color(0xFF808000);
+  final Color primaryColor = AppColors.primary;
 
   Future<void> _markAsRead(String notificationId) async {
     try {
       await FirebaseFirestore.instance
-          .collection('notifications')
+          .collection(Collections.notifications)
           .doc(notificationId)
           .update({'read': true});
     } catch (e) {
@@ -28,7 +29,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _deleteNotification(String notificationId) async {
     try {
       await FirebaseFirestore.instance
-          .collection('notifications')
+          .collection(Collections.notifications)
           .doc(notificationId)
           .delete();
     } catch (e) {
@@ -47,7 +48,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('notifications')
+            .collection(Collections.notifications)
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {

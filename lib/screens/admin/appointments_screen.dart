@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -75,7 +76,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
   void _fetchDoctors() async {
     try {
       final snapshot = await FirebaseFirestore.instance
-          .collection('doctors')
+          .collection(Collections.doctors)
           .get();
 
       setState(() {
@@ -94,7 +95,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
 
   void _setupDoctorsListener() {
     FirebaseFirestore.instance
-        .collection('doctors')
+        .collection(Collections.doctors)
         .snapshots()
         .listen((snapshot) {
       setState(() {
@@ -106,7 +107,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
   }
 
   void _setupUsersListener() {
-    FirebaseFirestore.instance.collection('users').snapshots().listen((snapshot) {
+    FirebaseFirestore.instance.collection(Collections.users).snapshots().listen((snapshot) {
       setState(() {
         _usersCache = {for (var doc in snapshot.docs) doc.id: doc.data()};
       });
@@ -152,7 +153,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
   }
 
   Stream<QuerySnapshot> _getAppointmentsStream() {
-    Query query = FirebaseFirestore.instance.collection('appointments');
+    Query query = FirebaseFirestore.instance.collection(Collections.appointments);
 
     if (_selectedDate != null) {
       final startOfDay = Timestamp.fromDate(DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day));
@@ -233,7 +234,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
             floating: false,
             pinned: true,
             elevation: 0,
-            backgroundColor: const Color(0xFF808000),
+            backgroundColor: AppColors.primary,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 'Appointments',
@@ -250,7 +251,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF808000),
+                      AppColors.primary,
                       const Color(0xFFC2A50A),
                     ],
                   ),
@@ -304,7 +305,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFF808000).withOpacity(0.1),
+                          AppColors.primary.withOpacity(0.1),
                           Colors.white,
                         ],
                       ),
@@ -318,12 +319,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF808000).withOpacity(0.1),
+                            color: AppColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.event_note_rounded,
-                            color: Color(0xFF808000),
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
@@ -375,12 +376,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF808000).withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.tune_rounded,
-                      color: Color(0xFF808000),
+                      color: AppColors.primary,
                       size: 24,
                     ),
                   ),
@@ -402,7 +403,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                             '$_activeFiltersCount active filter${_activeFiltersCount > 1 ? 's' : ''}',
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: const Color(0xFF808000),
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -413,7 +414,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF808000),
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -430,7 +431,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                     turns: _rotationAnimation,
                     child: const Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: Color(0xFF808000),
+                      color: AppColors.primary,
                       size: 28,
                     ),
                   ),
@@ -495,7 +496,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
 
   Widget _buildStatsSection() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('appointments').snapshots(),
+      stream: FirebaseFirestore.instance.collection(Collections.appointments).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
 
@@ -509,7 +510,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Row(
             children: [
-              Expanded(child: _buildStatCard('Total', total, Icons.event_rounded, const Color(0xFF808000))),
+              Expanded(child: _buildStatCard('Total', total, Icons.event_rounded, AppColors.primary)),
               const SizedBox(width: 8),
               Expanded(child: _buildStatCard('Scheduled', scheduled, Icons.schedule_rounded, const Color(0xFF2196F3))),
               const SizedBox(width: 8),
@@ -580,7 +581,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(primary: Color(0xFF808000)),
+                colorScheme: const ColorScheme.light(primary: AppColors.primary),
               ),
               child: child!,
             );
@@ -592,11 +593,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: _selectedDate != null ? const Color(0xFF808000) : const Color(0xFFE0E0E0),
+            color: _selectedDate != null ? AppColors.primary : const Color(0xFFE0E0E0),
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: _selectedDate != null ? const Color(0xFF808000).withOpacity(0.05) : Colors.transparent,
+          color: _selectedDate != null ? AppColors.primary.withOpacity(0.05) : Colors.transparent,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,7 +607,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                 Icon(
                   Icons.calendar_today_rounded,
                   size: 18,
-                  color: _selectedDate != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                  color: _selectedDate != null ? AppColors.primary : const Color(0xFF999999),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -614,7 +615,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: _selectedDate != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                    color: _selectedDate != null ? AppColors.primary : const Color(0xFF999999),
                   ),
                 ),
               ],
@@ -639,11 +640,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(
-          color: _selectedDoctor != null ? const Color(0xFF808000) : const Color(0xFFE0E0E0),
+          color: _selectedDoctor != null ? AppColors.primary : const Color(0xFFE0E0E0),
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
-        color: _selectedDoctor != null ? const Color(0xFF808000).withOpacity(0.05) : Colors.transparent,
+        color: _selectedDoctor != null ? AppColors.primary.withOpacity(0.05) : Colors.transparent,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -653,7 +654,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
               Icon(
                 Icons.local_hospital_rounded,
                 size: 18,
-                color: _selectedDoctor != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                color: _selectedDoctor != null ? AppColors.primary : const Color(0xFF999999),
               ),
               const SizedBox(width: 8),
               Text(
@@ -661,7 +662,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: _selectedDoctor != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                  color: _selectedDoctor != null ? AppColors.primary : const Color(0xFF999999),
                 ),
               ),
             ],
@@ -701,11 +702,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(
-          color: _selectedStatus != null ? const Color(0xFF808000) : const Color(0xFFE0E0E0),
+          color: _selectedStatus != null ? AppColors.primary : const Color(0xFFE0E0E0),
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
-        color: _selectedStatus != null ? const Color(0xFF808000).withOpacity(0.05) : Colors.transparent,
+        color: _selectedStatus != null ? AppColors.primary.withOpacity(0.05) : Colors.transparent,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,7 +716,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
               Icon(
                 Icons.info_outline_rounded,
                 size: 18,
-                color: _selectedStatus != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                color: _selectedStatus != null ? AppColors.primary : const Color(0xFF999999),
               ),
               const SizedBox(width: 8),
               Text(
@@ -723,7 +724,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: _selectedStatus != null ? const Color(0xFF808000) : const Color(0xFF999999),
+                  color: _selectedStatus != null ? AppColors.primary : const Color(0xFF999999),
                 ),
               ),
             ],
@@ -764,7 +765,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
       height: 400,
       child: const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF808000)),
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
         ),
       ),
     )
@@ -776,7 +777,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
             height: 200,
             child: const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF808000)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             ),
           );
@@ -859,13 +860,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF808000).withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   Icons.event_busy_rounded,
                   size: 48,
-                  color: const Color(0xFF808000),
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -997,10 +998,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF808000).withOpacity(0.1),
+                                color: AppColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: const Color(0xFF808000).withOpacity(0.2),
+                                  color: AppColors.primary.withOpacity(0.2),
                                 ),
                               ),
                               child: Row(
@@ -1009,7 +1010,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                                   const Icon(
                                     Icons.access_time_rounded,
                                     size: 16,
-                                    color: Color(0xFF808000),
+                                    color: AppColors.primary,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -1017,7 +1018,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with TickerProv
                                     style: GoogleFonts.inter(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF808000),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ],

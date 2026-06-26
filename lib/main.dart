@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:html' as html;
@@ -29,14 +30,14 @@ void main() async {
       appId: "1:272709137362:web:93b6bc3f76e5191827ce0b",
     ),
   );
-  print('✅ Firebase initialized: ${Firebase.app().name}');
+  debugPrint('✅ Firebase initialized: ${Firebase.app().name}');
 
   // Register FCM service worker
   if (html.window.navigator.serviceWorker != null) {
     html.window.navigator.serviceWorker!
         .register('firebase-messaging-sw.js')
-        .then((reg) => print('✅ Service Worker registered: ${reg.scope}'))
-        .catchError((e) => print('❌ SW registration failed: $e'));
+        .then((reg) => debugPrint('✅ Service Worker registered: ${reg.scope}'))
+        .catchError((e) => debugPrint('❌ SW registration failed: $e'));
   }
 
   runApp(const ClinicWebDashboard());
@@ -50,11 +51,11 @@ class ClinicWebDashboard extends StatelessWidget {
     return MaterialApp(
       title: 'Deseret Hospital Dashboard',
       theme: ThemeData(
-        primaryColor: const Color(0xFF808000),
+        primaryColor: AppColors.primary,
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF808000),
-          primary: const Color(0xFF808000),
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
           surface: Colors.white,
         ),
         textTheme: const TextTheme(
@@ -94,21 +95,21 @@ class UnknownRouteScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Page Not Found'),
-        backgroundColor: const Color(0xFF808000),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Color(0xFF808000)),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.primary),
             const SizedBox(height: 16),
             const Text(
               'Page Not Found',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF808000),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 8),
@@ -120,7 +121,7 @@ class UnknownRouteScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF808000),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Go Back'),

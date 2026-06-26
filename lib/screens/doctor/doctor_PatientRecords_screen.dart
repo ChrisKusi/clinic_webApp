@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -120,7 +121,7 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
     });
 
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('users').get();
+      final snapshot = await FirebaseFirestore.instance.collection(Collections.users).get();
       List<Map<String, String>> patients = snapshot.docs.map((doc) {
         final data = doc.data();
         return {'id': doc.id, 'name': _constructDisplayName(data)};
@@ -243,7 +244,7 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
 
       // Add to global prescriptions collection and get auto-generated ID
       final docRef = await FirebaseFirestore.instance
-          .collection('prescriptions')
+          .collection(Collections.prescriptions)
           .add(prescriptionData);
       final prescriptionId = docRef.id;
 
@@ -254,9 +255,9 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
       };
 
       await FirebaseFirestore.instance
-          .collection('users')
+          .collection(Collections.users)
           .doc(_selectedPatientId)
-          .collection('prescriptions')
+          .collection(Collections.prescriptions)
           .doc(prescriptionId)
           .set(prescriptionDataWithId);
 
@@ -304,9 +305,9 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
   Stream<QuerySnapshot> _getPrescriptionHistory() {
     if (_selectedPatientId == null) return const Stream.empty();
     return FirebaseFirestore.instance
-        .collection('users')
+        .collection(Collections.users)
         .doc(_selectedPatientId)
-        .collection('prescriptions')
+        .collection(Collections.prescriptions)
         .orderBy('prescribedAt', descending: true)
         .snapshots();
   }
@@ -1549,7 +1550,7 @@ class _DoctorPatientRecordsScreenState extends State<DoctorPatientRecordsScreen>
             _buildAnimatedSearchSection(),
             if (_selectedPatientId != null) ...[
               StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance.collection('users').doc(_selectedPatientId).snapshots(),
+                stream: FirebaseFirestore.instance.collection(Collections.users).doc(_selectedPatientId).snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Container(

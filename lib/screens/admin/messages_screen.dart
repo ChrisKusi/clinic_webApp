@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,7 +26,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<void> _fetchCurrentUserDetails() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance.collection(Collections.users).doc(user.uid).get();
       setState(() {
         _currentUserId = user.uid;
         _currentUserRole = doc.data()?['role'];
@@ -44,7 +45,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       'senderRole': _currentUserRole,
     };
 
-    await FirebaseFirestore.instance.collection('messages').add(message);
+    await FirebaseFirestore.instance.collection(Collections.messages).add(message);
     _messageController.clear();
     _scrollToBottom();
   }
@@ -68,14 +69,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Messages', style: GoogleFonts.roboto(color: Colors.white)),
-        backgroundColor: const Color(0xFF808000),
+        backgroundColor: AppColors.primary,
       ),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('messages')
+                  .collection(Collections.messages)
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -105,7 +106,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isSender ? const Color(0xFF808000) : Colors.grey[300],
+                          color: isSender ? AppColors.primary : Colors.grey[300],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -153,7 +154,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ElevatedButton(
                   onPressed: _sendMessage,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF808000),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                   child: Text('Send', style: GoogleFonts.roboto()),

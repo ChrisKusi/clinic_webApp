@@ -1,3 +1,4 @@
+import 'package:clinic_web_dashboard/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -85,7 +86,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
 // Set up user data in Firestore
         if (_role == 'doctor') {
           await FirebaseFirestore.instance
-              .collection('doctors')
+              .collection(Collections.doctors)
               .doc(credential.user!.uid)
               .set({
             'name': _nameController.text.trim(),
@@ -99,7 +100,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
           }, SetOptions(merge: true));
         } else if (_role == 'admin') {
           await FirebaseFirestore.instance
-              .collection('users')
+              .collection(Collections.users)
               .doc(credential.user!.uid)
               .set({
             'name': _nameController.text.trim(),
@@ -121,7 +122,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                 fontWeight: FontWeight.w600,
               ),
             ),
-            backgroundColor: const Color(0xFF808000),
+            backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -190,7 +191,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
             letterSpacing: 0.5,
           ),
         ),
-        backgroundColor: const Color(0xFF808000),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 2,
         centerTitle: true,
@@ -229,13 +230,13 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
-                                colors: [const Color(0xFF808000).withOpacity(0.2), const Color(0xFF4DB6AC).withOpacity(0.2)],
+                                colors: [AppColors.primary.withOpacity(0.2), const Color(0xFF4DB6AC).withOpacity(0.2)],
                               ),
                             ),
                             child: Icon(
                               Icons.person_add_rounded,
                               size: 42,
-                              color: const Color(0xFF808000),
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
@@ -329,7 +330,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                              color: const Color(0xFF808000),
+                              color: AppColors.primary,
                             ),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
@@ -363,7 +364,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                               contentPadding: const EdgeInsets.all(14),
                               prefixIcon: Icon(
                                 Icons.work_outline_rounded,
-                                color: const Color(0xFF808000),
+                                color: AppColors.primary,
                               ),
                             ),
                             items: const [
@@ -404,7 +405,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                                 contentPadding: const EdgeInsets.all(14),
                                 prefixIcon: Icon(
                                   Icons.medical_services_outlined,
-                                  color: const Color(0xFF808000),
+                                  color: AppColors.primary,
                                 ),
                               ),
                               validator: (value) => _role == 'doctor' && value == null ? 'Please select a specialization' : null,
@@ -477,7 +478,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _register,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF808000),
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               elevation: 3,
@@ -548,7 +549,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> with SingleTick
           contentPadding: const EdgeInsets.all(14),
           prefixIcon: Icon(
             icon,
-            color: const Color(0xFF808000),
+            color: AppColors.primary,
             size: 22,
           ),
           suffixIcon: suffixIcon,
